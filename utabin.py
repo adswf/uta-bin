@@ -2,6 +2,23 @@
 import pandas as pd
 
 
+def indices_in(linea, substring):
+    posiciones = [linea.rfind(substring)]
+    posicion = posiciones[0]
+    if posicion != 0 or posicion != -1:
+        while True:
+            posicion = linea[:posicion].rfind(substring)
+            if posicion == 0:
+                posiciones.append(0)
+                break
+            elif posicion == -1:
+                break
+            else:
+                posiciones.append(posicion)
+    posiciones.sort()
+    return posiciones
+
+
 def cambiar(pos):
     pos_hex = hex(pos)[2:]
     if len(pos_hex) > 4:
@@ -14,7 +31,11 @@ def cambiar(pos):
 
 
 def cambiar_y_buscar(pos, file):
-    return file.find(cambiar(pos))
+    if file.count(cambiar(pos)) > 1:
+        found = indices_in(file, cambiar(pos))
+    else:
+        found = file.find(cambiar(pos))
+    return found
 
 
 def abrir(filename):
@@ -54,8 +75,8 @@ def reemplazar(filename):
     with open(f"{filename}_head.bin", "rb") as head:
         head = bytearray(head.read())
 
+    found_on = str(edited_csv.columns[0])
     nuevas_pos = [int(edited_csv.columns[0])]
-    lineas_cambiadas = 0
 
     for i in range(len(edited_csv['text'])):
         original_length = edited_csv['length'][i]
@@ -69,12 +90,18 @@ def reemplazar(filename):
             head = head + (edited_csv['text'][i]).encode() + b"\x00"
             by = nuevas_pos[-1] + edited_length + 1
 
-            if edited_length == original_length:
+            try:
+                try:
+                    camb = int(edited_csv[found_on][i + 1])
+                    for h in range(len(cambiar(by))):  # para los bytes en by cambiado
+                        head[camb + h] = cambiar(by)[h]
+                except ValueError:
+                    camb = [int(e) for e in edited_csv[f"{edited_csv.columns[0]}"][i + 1].strip('][').split(', ')]
+                    for k in camb:
+                        for h in range(len(cambiar(by))):  # para los bytes en by cambiado
+                            head[k + h] = cambiar(by)[h]
+            except KeyError:
                 pass
-            elif edited_length != original_length:
-                for h in range(len(cambiar(by))):
-                    head[edited_csv[f"{edited_csv.columns[0]}"][i + 1] + h] = cambiar(by)[h]
-                lineas_cambiadas = lineas_cambiadas + 1
 
             nuevas_pos.append(by)
 
@@ -86,7 +113,7 @@ def reemplazar(filename):
     with open(f"{filename}_final.bin", "wb") as final:
         final.write(head)
 
-    print(f"Listo. Líneas cambiadas: {lineas_cambiadas}")
+    print(f"Listo.")
 
 
 def main():
@@ -106,6 +133,7 @@ def main():
             break
         else:
             print("Selección no válida, seleccione nuevamente.")
+    input("enter")
 
 
 main()

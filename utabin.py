@@ -1,5 +1,6 @@
 
 import pandas as pd
+import os
 
 
 def indices_in(linea, substring):
@@ -81,7 +82,7 @@ def reemplazar(filename):
     for i in range(len(edited_csv['text'])):
         original_length = edited_csv['length'][i]
         if original_length != 0:
-            if edited_csv['text'][i].find("♪") != -1:
+            if edited_csv['text'][i].count("♪") > 0:
                 edited_length = len([letra for letra in edited_csv['text'][i] if letra != "♪"]) + edited_csv['text'][
                     i].count("♪") * 3
             else:
@@ -93,12 +94,12 @@ def reemplazar(filename):
             try:
                 try:
                     camb = int(edited_csv[found_on][i + 1])
-                    for h in range(len(cambiar(by))):  # para los bytes en by cambiado
+                    for h in range(len(cambiar(by))):
                         head[camb + h] = cambiar(by)[h]
                 except ValueError:
                     camb = [int(e) for e in edited_csv[f"{edited_csv.columns[0]}"][i + 1].strip('][').split(', ')]
                     for k in camb:
-                        for h in range(len(cambiar(by))):  # para los bytes en by cambiado
+                        for h in range(len(cambiar(by))):
                             head[k + h] = cambiar(by)[h]
             except KeyError:
                 pass
@@ -130,10 +131,11 @@ def main():
             for filename in filenames:
                 print(f"Inyectando texto de {filename}...", end=" ")
                 reemplazar(filename)
+                os.remove(f"{filename}_head.bin")
             break
         else:
             print("Selección no válida, seleccione nuevamente.")
-    input("enter")
-
+    input("Presiona Enter para finalizar...")
+  
 
 main()

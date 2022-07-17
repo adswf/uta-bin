@@ -1,6 +1,5 @@
 
 import pandas as pd
-import os
 
 
 def indices_in(linea, substring):
@@ -131,10 +130,9 @@ def main():
             for filename in filenames:
                 print(f"Inyectando texto de {filename}...", end=" ")
                 reemplazar(filename)
-                os.remove(f"{filename}_head.bin")
             break
         else:
-            print("Selección no válida, seleccione nuevamente.")
+            print("Selección no válida, selecciona nuevamente.")
     input("Presiona Enter para finalizar...")
   
 
